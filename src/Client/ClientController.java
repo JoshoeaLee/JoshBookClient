@@ -32,6 +32,9 @@ public class ClientController {
     AES aes;
 
     
+    //https://stackoverflow.com/questions/2411096/how-to-recover-a-rsa-public-key-from-a-byte-array
+    //Decoder - https://stackoverflow.com/questions/67947209/java-lang-illegalargumentexception-illegal-base64-character-5b
+
     public ClientController(ClientGUI gui) throws Exception{
         this.gui = gui;
 
@@ -87,10 +90,20 @@ public class ClientController {
 
     public void logIn(String firstName, String lastName, String passWord, Text portInstructions) throws IOException, InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
 
+        //Secure Login
+        AES loginAES = new AES();
+        byte[] EncFN = loginAES.encryptUsingServerPublic(firstName);
+        byte[] EncLN = loginAES.encryptUsingServerPublic(lastName);
+        byte[] EncPW = loginAES.encryptUsingServerPublic(passWord);
+
+        String encodedFN = Base64.getEncoder().encodeToString(EncFN);
+        String encodedLN = Base64.getEncoder().encodeToString(EncLN);
+        String encodedPW = Base64.getEncoder().encodeToString(EncPW);
+        
         outputPrinter.println("login");
-        outputPrinter.println(firstName);
-        outputPrinter.println(lastName);
-        outputPrinter.println(passWord);
+        outputPrinter.println(encodedFN);
+        outputPrinter.println(encodedLN);
+        outputPrinter.println(encodedPW);
 
         String accountStatus = inputReader.readLine();
         if(accountStatus.equals("loginSuccess")){

@@ -22,6 +22,7 @@ public class ClientGUI extends Application {
     ChoiceBox<String> friendList;
 
 
+    
     public static TableView<MessageLog> messageView = new TableView<>(); 
 
     @Override
