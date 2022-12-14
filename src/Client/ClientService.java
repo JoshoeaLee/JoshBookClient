@@ -13,7 +13,11 @@ public class ClientService extends Service<String> {
     public ClientService( ClientGUI clientGUI){
 
         this.clientGUI = clientGUI;
-        this.clientController = new ClientController(clientGUI);
+        try {
+            this.clientController = new ClientController(clientGUI);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
 
         
         setOnSucceeded(new EventHandler<WorkerStateEvent>(){

@@ -1,12 +1,25 @@
 package Client;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import javafx.scene.text.Text;
+
+import java.util.Base64;
 
 public class ClientController {
 
@@ -15,9 +28,11 @@ public class ClientController {
     PrintWriter outputPrinter;
     Socket clientSocket;
     String userId;
+    SecretKey sessionKey;
+    AES aes;
 
     
-    public ClientController(ClientGUI gui){
+    public ClientController(ClientGUI gui) throws Exception{
         this.gui = gui;
 
     }
@@ -30,16 +45,33 @@ public class ClientController {
 
     }
 
-    public void sendMessage(String message, String recepient){
-
+    public void sendMessage(String message, String recepient) {
+        if(recepient==null){
+            gui.openNotification("Please select a valid recepient");
+        }
+        else{
         outputPrinter.println("INCOMING_MESSAGE_X9%(*");
         outputPrinter.println(recepient);
-        outputPrinter.println(message);
+
+
+        //SENDING ENCRYPTED MESSAGE - https://stackoverflow.com/questions/4860590/sending-and-receiving-byte-using-socket
+
+        try {
+            //Encrypt the message using the client's session key
+            byte[] encMessage = aes.encrypt(message);
+            String encMessageString = Base64.getEncoder().encodeToString(encMessage);
+            outputPrinter.println(encMessageString);
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        
+     }
     }
 
     public void listenForMessages(){
         System.out.println("Starting a client thread");
-        new ClientThread(clientSocket, inputReader, outputPrinter, this).start();
+        new ClientThread(clientSocket, inputReader, outputPrinter, this, aes, sessionKey).start();
     }
 
     public void closeClient() throws IOException{
@@ -53,7 +85,8 @@ public class ClientController {
 
     //THESE HAPPEN BEFORE SENDING MESSAGES HAPPENS
 
-    public void logIn(String firstName, String lastName, String passWord, Text portInstructions) throws IOException, InterruptedException{
+    public void logIn(String firstName, String lastName, String passWord, Text portInstructions) throws IOException, InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+
         outputPrinter.println("login");
         outputPrinter.println(firstName);
         outputPrinter.println(lastName);
@@ -65,6 +98,15 @@ public class ClientController {
             String welcome = inputReader.readLine();
             portInstructions.setText(welcome);
             userId = inputReader.readLine();
+
+
+            sessionKey = generateSessionKey(userId);
+
+             //Encode -> Encrypt -> Encode The Client's Session Key using the server key.
+             String keyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
+             byte[] encKey = aes.encryptUsingServerPublic(keyString);
+             String encKeyString = Base64.getEncoder().encodeToString(encKey);
+            outputPrinter.println(encKeyString);
 
             this.populateOnlineUsers();
             this.enterChatroom();
@@ -90,6 +132,7 @@ public class ClientController {
             userId = inputReader.readLine();
 
 
+            sessionKey = generateSessionKey(userId);
             this.populateOnlineUsers();
             this.enterChatroom();
 
@@ -106,6 +149,29 @@ public class ClientController {
         this.listenForMessages(); //LISTEN
 
     }
+
+    /**
+     * Generates a session key
+     * @return Session key for the client while they're connected to the server
+     * @throws FileNotFoundException
+     */
+    public SecretKey generateSessionKey(String user) throws FileNotFoundException{
+        try {
+            aes = new AES();
+            SecretKey sessionKey = aes.generateKey();
+            String encodedSessionKey = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
+            PrintWriter saveKeyPrint = new PrintWriter(new File("./lib/" + user + "SessionKey.txt"));
+            saveKeyPrint.println(encodedSessionKey);
+            saveKeyPrint.close();
+
+            return sessionKey;
+            
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public void populateOnlineUsers() throws IOException{
         int userNum = 1;

@@ -1,9 +1,11 @@
 package Client;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Base64;
+
+import javax.crypto.SecretKey;
 
 import javafx.scene.control.ChoiceBox;
 
@@ -13,12 +15,17 @@ public class ClientThread extends Thread {
     BufferedReader inputReader;
     PrintWriter outputPrinter;
     ClientController clientController;
+    SecretKey sessionKey;
+    AES aes;
 
-    public ClientThread(Socket clientSocket, BufferedReader inputReader, PrintWriter outputPrinter, ClientController clientController){
+    public ClientThread(Socket clientSocket, BufferedReader inputReader, PrintWriter outputPrinter, ClientController clientController, AES aes, SecretKey sessionKey){
         this.clientSocket = clientSocket;
         this.inputReader = inputReader;
         this.outputPrinter = outputPrinter;
         this.clientController = clientController;
+        this.aes = aes;
+        this.sessionKey = sessionKey;
+        
     }
 
     public void run(){
@@ -36,17 +43,18 @@ public class ClientThread extends Thread {
             }
 
             if(line.equals("MESSAGE_INCOMING")){
-                String message = inputReader.readLine();
-                System.out.println(message + " at socket " + clientSocket);
+                String encMessage = inputReader.readLine();
+                byte[] decodedMessage = Base64.getDecoder().decode(encMessage);
+                String decryptedMessage = aes.decrypt(decodedMessage);
+                System.out.println(decryptedMessage + " at socket " + clientSocket);
             }
-
 
             this.listenForMore();
         }
             
-        catch(IOException e){
+        catch(Exception e){
             System.out.println("Socket's closed!");
-        }
+        } 
     }
     
 
