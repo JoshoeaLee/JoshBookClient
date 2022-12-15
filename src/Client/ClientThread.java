@@ -21,14 +21,14 @@ public class ClientThread extends Thread {
     PrintWriter outputPrinter;
     ClientController clientController;
     SecretKey sessionKey;
-    AES aes;
+    EncryptionHandler encryptionHandler;
 
-    public ClientThread(Socket clientSocket, BufferedReader inputReader, PrintWriter outputPrinter, ClientController clientController, AES aes, SecretKey sessionKey){
+    public ClientThread(Socket clientSocket, BufferedReader inputReader, PrintWriter outputPrinter, ClientController clientController, EncryptionHandler encryptionHandler, SecretKey sessionKey){
         this.clientSocket = clientSocket;
         this.inputReader = inputReader;
         this.outputPrinter = outputPrinter;
         this.clientController = clientController;
-        this.aes = aes;
+        this.encryptionHandler = encryptionHandler;
         this.sessionKey = sessionKey;
         
     }
@@ -59,7 +59,7 @@ public class ClientThread extends Thread {
                 String  user = inputReader.readLine();
                 String encMessage = inputReader.readLine();
                 byte[] decodedMessage = Base64.getDecoder().decode(encMessage);
-                String decryptedMessage = aes.decrypt(decodedMessage);
+                String decryptedMessage = encryptionHandler.decrypt(decodedMessage);
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 String timeStampString = timestamp.toString();
                 clientController.updateMessages(user, decryptedMessage, timeStampString);

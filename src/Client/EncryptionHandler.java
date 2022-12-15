@@ -1,6 +1,5 @@
 package Client;
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.security.InvalidAlgorithmParameterException;
@@ -21,44 +20,45 @@ import javax.crypto.SecretKey;
 
 
 /**
- *
- * @author ahmed
+ * METHODS INVOLVING ENCRYPTION AND DECRYPTION ARE TAKEN FROM ALI'S CODE.
+ * I added on the methods involving the 'Server Public Key'.
  */
-public class AES {
+public class EncryptionHandler {
     
     /**
      * Private Key that I have
      */
-    private SecretKey secretkey; 
-    
+    private SecretKey sessionKey; 
     public PublicKey serverPublicKey;
     
     
-    public AES() throws NoSuchAlgorithmException 
+    public EncryptionHandler() throws NoSuchAlgorithmException 
     {
     }
     
     
+  
     /**
-	* Step 1. Generate a AES key using KeyGenerator 
-    */
-    
+     * Generates an AES session key and sets it.
+     * @return the AES session key generated
+     */
     public SecretKey generateKey() throws NoSuchAlgorithmException 
     {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         this.setSecretkey(keyGen.generateKey());       
-        return this.secretkey;
+        return this.sessionKey;
          
     }
 
     
+  
+           
     /**
-     * Retrieves the publicServerKey
-     * @return
+     * Reads in the server public key I have made and sets it.
      * @throws FileNotFoundException
      */
-        public void getPublicServerKey() throws FileNotFoundException{
-            File file = new File( "./lib/serverPublicKey.txt");
+    public void getPublicServerKey() throws FileNotFoundException{
+        File file = new File( "./lib/serverPublicKey.txt");
         Scanner sc = new Scanner(file);
         String serverPublicKey = sc.nextLine();
         sc.close();
@@ -73,7 +73,12 @@ public class AES {
 
     
 
-    
+    /**
+     * Encrypts a message using the AES Session Key set
+     * @param strDataToEncrypt The message to encrypt
+     * @return A byte array of the encrypted message
+     * @author ALI AHMED
+     */
     public byte[] encrypt (String strDataToEncrypt) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
@@ -86,7 +91,12 @@ public class AES {
         return byteCipherText;
     }
 
-      
+    /**
+     * Encrypts a string message into a byte array using THE PUBLIC SERVER KEY
+     * @param strCipherText
+     * @return byte array which is encrypted.
+     * @author ALI AHMED 
+     */  
     public byte[] encryptUsingServerPublic (String strDataToEncrypt) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
@@ -103,7 +113,12 @@ public class AES {
     }
 
     
-    
+    /**
+     * Decrypts a byte array into a string using the session key
+     * @param strCipherText
+     * @return String message which is decrypted
+     * @author ALI AHMED
+     */
     public String decrypt (byte[] strCipherText) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
@@ -115,18 +130,13 @@ public class AES {
         return new String(byteDecryptedText);
     }   
 
-    /**
-     * @return the secretkey
-     */
+    //////GETTERS AND SETTERS
     public SecretKey getSecretkey() {
-        return secretkey;
+        return sessionKey;
     }
 
-    /**
-     * @param secretkey the secretkey to set
-     */
-    public void setSecretkey(SecretKey secretkey) {
-        this.secretkey = secretkey;
+    public void setSecretkey(SecretKey sessionKey) {
+        this.sessionKey = sessionKey;
     }
 
     public PublicKey getServerPublicKey(){

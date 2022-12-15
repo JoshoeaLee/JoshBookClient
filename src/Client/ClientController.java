@@ -34,7 +34,7 @@ public class ClientController {
     Socket clientSocket;
     String userId;
     SecretKey sessionKey;
-    AES aes;
+    EncryptionHandler encryptionHandler;
 
     HashMap<String, ObservableList<String>> messageBoxes = new HashMap<>();
     
@@ -76,7 +76,7 @@ public class ClientController {
 
         try {
             //Encrypt the message using the client's session key
-            byte[] encMessage = aes.encrypt(message);
+            byte[] encMessage = encryptionHandler.encrypt(message);
             String encMessageString = Base64.getEncoder().encodeToString(encMessage);
             outputPrinter.println(encMessageString);
 
@@ -88,7 +88,7 @@ public class ClientController {
     }
 
     public void listenForMessages(){
-        new ClientThread(clientSocket, inputReader, outputPrinter, this, aes, sessionKey).start();
+        new ClientThread(clientSocket, inputReader, outputPrinter, this, encryptionHandler, sessionKey).start();
     }
 
     public void closeClient() throws IOException{
@@ -106,10 +106,10 @@ public class ClientController {
     public void logIn(String firstName, String lastName, String passWord, Text portInstructions) throws IOException, InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
 
         //Secure Login
-        AES loginAES = new AES();
-        byte[] EncFN = loginAES.encryptUsingServerPublic(firstName);
-        byte[] EncLN = loginAES.encryptUsingServerPublic(lastName);
-        byte[] EncPW = loginAES.encryptUsingServerPublic(passWord);
+        EncryptionHandler loginEncryptionHandler = new EncryptionHandler();
+        byte[] EncFN = loginEncryptionHandler.encryptUsingServerPublic(firstName);
+        byte[] EncLN = loginEncryptionHandler.encryptUsingServerPublic(lastName);
+        byte[] EncPW = loginEncryptionHandler.encryptUsingServerPublic(passWord);
 
         String encodedFN = Base64.getEncoder().encodeToString(EncFN);
         String encodedLN = Base64.getEncoder().encodeToString(EncLN);
@@ -133,7 +133,7 @@ public class ClientController {
 
              //Encode -> Encrypt -> Encode The Client's Session Key using the server key.
              String keyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
-             byte[] encKey = aes.encryptUsingServerPublic(keyString);
+             byte[] encKey = encryptionHandler.encryptUsingServerPublic(keyString);
              String encKeyString = Base64.getEncoder().encodeToString(encKey);
             outputPrinter.println(encKeyString);
 
@@ -148,10 +148,20 @@ public class ClientController {
     }
 
     public void createAccount(String fName, String lName, String pWord, Text portInstructions) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+       //Secure Account Creation
+        EncryptionHandler createAccountEncryptionHandler = new EncryptionHandler();
+        byte[] EncFN = createAccountEncryptionHandler.encryptUsingServerPublic(fName);
+        byte[] EncLN = createAccountEncryptionHandler.encryptUsingServerPublic(lName);
+        byte[] EncPW = createAccountEncryptionHandler.encryptUsingServerPublic(pWord);
+
+        String encodedFN = Base64.getEncoder().encodeToString(EncFN);
+        String encodedLN = Base64.getEncoder().encodeToString(EncLN);
+        String encodedPW = Base64.getEncoder().encodeToString(EncPW);
+        
         outputPrinter.println("createAccount");
-        outputPrinter.println(fName);
-        outputPrinter.println(lName);
-        outputPrinter.println(pWord);
+        outputPrinter.println(encodedFN);
+        outputPrinter.println(encodedLN);
+        outputPrinter.println(encodedPW);
 
         String accountStatus =  inputReader.readLine();
         if(accountStatus.equals("AccountCreated")){
@@ -165,7 +175,7 @@ public class ClientController {
             sessionKey = generateSessionKey(userId);
 
             String keyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
-            byte[] encKey = aes.encryptUsingServerPublic(keyString);
+            byte[] encKey = encryptionHandler.encryptUsingServerPublic(keyString);
             String encKeyString = Base64.getEncoder().encodeToString(encKey);
             outputPrinter.println(encKeyString);
 
@@ -193,8 +203,8 @@ public class ClientController {
      */
     public SecretKey generateSessionKey(String user) throws FileNotFoundException{
         try {
-            aes = new AES();
-            SecretKey sessionKey = aes.generateKey();
+            encryptionHandler = new EncryptionHandler();
+            SecretKey sessionKey = encryptionHandler.generateKey();
             String encodedSessionKey = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
             PrintWriter saveKeyPrint = new PrintWriter(new File("./lib/" + user + "SessionKey.txt"));
             saveKeyPrint.println(encodedSessionKey);
