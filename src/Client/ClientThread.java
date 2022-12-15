@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 
 import javax.crypto.SecretKey;
 

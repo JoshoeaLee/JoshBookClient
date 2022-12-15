@@ -238,7 +238,7 @@ public class ClientController {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run(){
-                    ClientController.this.getMessageBoxes().get(user).add(user + " said : " + decryptedMessage + "                   at " + timeString);
+                    ClientController.this.getMessageBoxes().get(user).add(user + " said : " + decryptedMessage + " |" + timeString);
                 }
             });
         }
@@ -247,7 +247,7 @@ public class ClientController {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run(){
-                    ClientController.this.getMessageBoxes().get(user).add("You said : " + decryptedMessage + "                   at " + timeString);
+                    ClientController.this.getMessageBoxes().get(user).add("You said : " + decryptedMessage + " |" + timeString);
                 }
             });
         }
