@@ -42,7 +42,7 @@ public class ClientGUI extends Application {
 
 
         //Scene setup
-        Scene scene = new Scene(root,1000,1000);
+        Scene scene = new Scene(root,1000,400);
         primaryStage.setScene(scene);
         primaryStage.setTitle("JoshBook Client");
         primaryStage.show();
@@ -101,21 +101,6 @@ public class ClientGUI extends Application {
         portBox.setAlignment(Pos.CENTER);
         portBox.setBackground(new Background(new BackgroundFill(Color.BEIGE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        //Friend Requests////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Text requestNumber = new Text("Friend Requests");
-        ChoiceBox<String> requestList = new ChoiceBox<>();
-        Button acceptButton = new Button("Accept");
-        Button rejectButton = new Button("Reject");
-
-        
-
-        VBox requestBox = new VBox(10);
-        requestBox.getChildren().addAll(requestNumber, requestList, acceptButton, rejectButton);
-        requestBox.setMinHeight(160);
-        requestBox.setDisable(true);
-        requestBox.setAlignment(Pos.CENTER);
-        requestBox.setBackground(new Background(new BackgroundFill(Color.LEMONCHIFFON, CornerRadii.EMPTY, Insets.EMPTY)));
-
         //Choose a friend////////////////////////////////////////////////////////////////////////////////////////////////////////
         Text chooseFriend = new Text("Choose an online person to talk to");
 
@@ -143,26 +128,12 @@ public class ClientGUI extends Application {
             
         });
 
-        //Chat Logs////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Text chatLogText = new Text("Chat Logs");
-
-        ChoiceBox<String> chatLogChoice = new ChoiceBox<String>();
-
-        Button chatLogBtn = new Button("Display");
-
-
-
-        VBox chatLogBox = new VBox(10);
-        chatLogBox.getChildren().addAll(chatLogText, chatLogChoice, chatLogBtn);
-        chatLogBox.setAlignment(Pos.CENTER);
-        chatLogBox.setMinHeight(160);
-        chatLogBox.setBackground(new Background(new BackgroundFill(Color.MISTYROSE, CornerRadii.EMPTY, Insets.EMPTY)));
-       
+        
 
 
         //SideBar
         VBox sideBar = new VBox(10);
-        sideBar.getChildren().addAll(portBox, requestBox, friendBox, chatLogBox);
+        sideBar.getChildren().addAll(portBox,  friendBox);
 
         return sideBar;
     }
@@ -187,13 +158,13 @@ public class ClientGUI extends Application {
         //Chat Box Input
         TextArea chatInput = new TextArea();
         chatInput.setText("Enter Message");
-        chatInput.setMinSize(600, 60);
-        chatInput.setPadding(new Insets(15));
+        chatInput.setMinSize(600, 40);
+        chatInput.setPadding(new Insets(10));
         Button sendBtn = new Button("Send");
         HBox inputBox = new HBox(10);
         inputBox.getChildren().addAll(chatInput, sendBtn);
         inputBox.setAlignment(Pos.CENTER);
-        inputBox.setMinHeight(140);
+        inputBox.setMinHeight(80);
         inputBox.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
 
 
