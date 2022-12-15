@@ -47,7 +47,7 @@ public class ClientGUI extends Application {
         primaryStage.setTitle("JoshBook Client");
         primaryStage.show();
 
-        //On Client Close
+        //WHEN THE CLIENT CLOSES
         primaryStage.setOnCloseRequest(e->{
             System.out.println("Closing the client");
             try {
@@ -58,6 +58,10 @@ public class ClientGUI extends Application {
         });
     }
 
+    /*
+     * Creates the sidebar which has one box to put in port/ip address details and start a connection. The other box allows
+     * the user to choose someone to chat to.
+     */
     private VBox makeSidebar(){
 
         //Port and IP Selection Box////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +75,7 @@ public class ClientGUI extends Application {
         Button connectBtn = new Button("Connect");
         Button closeClient = new Button("Close");
 
+        //BUTTON FUNCTIONALITY
         connectBtn.setOnAction(e->{
             try{
                 String ip = ipField.getText();
@@ -79,13 +84,13 @@ public class ClientGUI extends Application {
                 if(!loggedin){
                     this.openLoginScreen();
                 }
-                //SWITCH TO LOGGEDIN
             }
             catch(Exception error){
                 error.printStackTrace();
             }
         });
 
+        //Closes the client socket. Not the actual stage.
         closeClient.setOnAction(e->{
             try {
                 clientController.closeClient();
@@ -95,15 +100,17 @@ public class ClientGUI extends Application {
         });
 
 
+        //MAKING THE PORT/IP VBOX
         VBox portBox = new VBox(10);
         portBox.getChildren().addAll(portInstructions, ipLabel, ipField, portLabel, portField, connectBtn, closeClient);
         portBox.setMinHeight(160);
         portBox.setAlignment(Pos.CENTER);
         portBox.setBackground(new Background(new BackgroundFill(Color.BEIGE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        //Choose a friend////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //ONLINE USER VBOX////////////////////////////////////////////////////////////////////////////////////////////////////////
         Text chooseFriend = new Text("Choose an online person to talk to");
 
+        //Displays online users. Allows user to choose one to talk to.
         friendList = new ChoiceBox<String>();
 
         Button chooseFriendBtn = new Button("Select");
@@ -115,8 +122,7 @@ public class ClientGUI extends Application {
         friendBox.setAlignment(Pos.CENTER);
         friendBox.setBackground(new Background(new BackgroundFill(Color.PAPAYAWHIP, CornerRadii.EMPTY, Insets.EMPTY)));
 
-
-
+        //BUTTON FUNCTIONALITY
         chooseFriendBtn.setOnAction(e->{
             if(clientController.getMessageBoxes().get(friendList.getSelectionModel().getSelectedItem())==null){
                 this.openNotification("Choose a valid user");
@@ -129,9 +135,7 @@ public class ClientGUI extends Application {
         });
 
         
-
-
-        //SideBar
+        //ADDING THE TWO BOXES TO MAKE THE FINAL SIDEBAR.
         VBox sideBar = new VBox(10);
         sideBar.getChildren().addAll(portBox,  friendBox);
 
@@ -140,6 +144,9 @@ public class ClientGUI extends Application {
 
    
 
+    /*
+     * Creates the central vbox which displays the messages between client and client
+     */
     private VBox makeMessagePane(){
 
         //Message Box Title
@@ -150,8 +157,7 @@ public class ClientGUI extends Application {
         titleBox.setMinHeight(20);
         titleBox.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        //Message Table
-
+        //Message view
         messageView = new ListView<String>();
         messageView.setPlaceholder(new Label("Choose someone and start chatting!"));
 
@@ -161,6 +167,8 @@ public class ClientGUI extends Application {
         chatInput.setMinSize(600, 40);
         chatInput.setPadding(new Insets(10));
         Button sendBtn = new Button("Send");
+
+        //Making a chat input Hbox
         HBox inputBox = new HBox(10);
         inputBox.getChildren().addAll(chatInput, sendBtn);
         inputBox.setAlignment(Pos.CENTER);
@@ -169,26 +177,28 @@ public class ClientGUI extends Application {
 
 
         //SendButton Functionality
-
         sendBtn.setOnAction(e->{
             String receiver = ClientGUI.this.getOnlineUserList().getValue();
             clientController.sendMessage(chatInput.getText(), receiver);
         });
-        //Full Message Pane
+
+        //THE WHOLE MESSAGE PANE DISPLAY
         VBox fullMessagePane = new VBox();
         fullMessagePane.getChildren().addAll(titleBox, messageView, inputBox);
 
-        
         return fullMessagePane;
 
     }
 
+    /*
+     * Causes a popup which allows the client to login to show
+     */
     public void openLoginScreen(){
 
         //Making Login Screen
-
         Text loginInstructions = new Text("Log In!");
 
+        //USER DETAILS
         Text firstNameLabel = new Text("First Name");
         TextField firstNameField = new TextField();
 
@@ -197,12 +207,17 @@ public class ClientGUI extends Application {
 
         Text passwordText = new Text("Password");
         PasswordField passField = new PasswordField();
+
+        //BUTTONS
         Button loginBtn = new Button("Log in");
         Button createAccountBtn = new Button("Create New Account");
 
+        //ADDING ABOVE TO VBOX
         VBox loginBox = new VBox(10);
-        loginBox.getChildren().addAll(loginInstructions, firstNameLabel, firstNameField, lastNameLabel, lastNameField, passwordText, passField, loginBtn, createAccountBtn);
+        loginBox.getChildren().addAll(loginInstructions, firstNameLabel, firstNameField, lastNameLabel, 
+        lastNameField, passwordText, passField, loginBtn, createAccountBtn);
 
+        //SETTING SCENE AND STAGE
         Scene loginScene = new Scene(loginBox, 600, 600);
         Stage loginStage = new Stage();
         extraStage = loginStage;
@@ -210,6 +225,7 @@ public class ClientGUI extends Application {
         loginStage.setTitle("Please Log in");
         loginStage.show();
 
+        //BUTTON FUNCTIONALITY
         createAccountBtn.setOnAction(click->{
             loginStage.close();
             this.openCreateAccountScreen();
@@ -219,7 +235,6 @@ public class ClientGUI extends Application {
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
             String pWord = passField.getText();
-
             try {
                 clientController.logIn(firstName, lastName, pWord, portInstructions);
             } catch (Exception e1) {
@@ -230,12 +245,15 @@ public class ClientGUI extends Application {
     }
 
 
+    /*
+     * Causes a popup which allows users to create an account to display.
+     */
     public void openCreateAccountScreen(){
 
         //Making Create Account Screen
+        Text createAccountInstructions = new Text("Create an Account!");
 
-        Text createAccountInstructions = new Text("Create an Accoung!");
-
+        //USER DETAILS
         Text firstName = new Text("First Name");
         TextField firstNameField = new TextField();
 
@@ -245,14 +263,16 @@ public class ClientGUI extends Application {
         Text passwordText = new Text("Password");
         PasswordField passField = new PasswordField();
 
+        //BUTTONS
         Button createButton = new Button("Create");
-
         Button loginSwapButton = new Button("I already have an account");
 
+        //ADDING THIS ALL TO A VBOX 
         VBox createBox = new VBox(10);
         createBox.getChildren().addAll(createAccountInstructions, firstName, firstNameField,
          lastName, lastNameField, passwordText, passField, createButton, loginSwapButton);
 
+        //SETTING SCENE AND CREATING STAGE
         Scene createScene = new Scene(createBox, 600, 600);
         Stage createStage = new Stage();
         extraStage = createStage;
@@ -260,6 +280,7 @@ public class ClientGUI extends Application {
         createStage.setTitle("Create Account");
         createStage.show();
 
+        //BUTTON FUNCTIONALITY
         loginSwapButton.setOnAction(click->{
             createStage.close();
             this.openLoginScreen();
@@ -274,13 +295,12 @@ public class ClientGUI extends Application {
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
-
-
         });
-
-
     }
 
+    /*
+     * Causes a popup to appear with the given message.
+     */
     public void openNotification(String message){
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Alert");
