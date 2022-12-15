@@ -10,16 +10,21 @@ import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
+import java.sql.Timestamp;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.text.Text;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 
 public class ClientController {
 
@@ -31,6 +36,7 @@ public class ClientController {
     SecretKey sessionKey;
     AES aes;
 
+    HashMap<String, ObservableList<String>> messageBoxes = new HashMap<>();
     
     //https://stackoverflow.com/questions/2411096/how-to-recover-a-rsa-public-key-from-a-byte-array
     //Decoder - https://stackoverflow.com/questions/67947209/java-lang-illegalargumentexception-illegal-base64-character-5b
@@ -48,11 +54,20 @@ public class ClientController {
 
     }
 
+    public void logOut(){
+        outputPrinter.println("LO357GGI1NG_O683UT_T)%#IME");
+        outputPrinter.println(userId);
+    }
+
+
     public void sendMessage(String message, String recepient) {
         if(recepient==null){
             gui.openNotification("Please select a valid recepient");
         }
         else{
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            String timeStampString = timestamp.toString();
+            this.updateYourMessages(recepient, message, timeStampString);
         outputPrinter.println("INCOMING_MESSAGE_X9%(*");
         outputPrinter.println(recepient);
 
@@ -73,13 +88,13 @@ public class ClientController {
     }
 
     public void listenForMessages(){
-        System.out.println("Starting a client thread");
         new ClientThread(clientSocket, inputReader, outputPrinter, this, aes, sessionKey).start();
     }
 
     public void closeClient() throws IOException{
         if(clientSocket!=null){
             outputPrinter.println("Client Closing");
+            this.logOut();
             clientSocket.close();
             System.out.println("Successfully closing");
         }
@@ -107,6 +122,7 @@ public class ClientController {
 
         String accountStatus = inputReader.readLine();
         if(accountStatus.equals("loginSuccess")){
+            gui.extraStage.close();
             gui.openNotification("Successfully logged in");
             String welcome = inputReader.readLine();
             portInstructions.setText(welcome);
@@ -131,7 +147,7 @@ public class ClientController {
 
     }
 
-    public void createAccount(String fName, String lName, String pWord, Text portInstructions) throws IOException{
+    public void createAccount(String fName, String lName, String pWord, Text portInstructions) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
         outputPrinter.println("createAccount");
         outputPrinter.println(fName);
         outputPrinter.println(lName);
@@ -139,6 +155,7 @@ public class ClientController {
 
         String accountStatus =  inputReader.readLine();
         if(accountStatus.equals("AccountCreated")){
+            gui.extraStage.close();
             gui.openNotification("Account Successfully Created");
             String welcome = inputReader.readLine();
             portInstructions.setText(welcome);
@@ -146,6 +163,13 @@ public class ClientController {
 
 
             sessionKey = generateSessionKey(userId);
+
+            String keyString = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
+            byte[] encKey = aes.encryptUsingServerPublic(keyString);
+            String encKeyString = Base64.getEncoder().encodeToString(encKey);
+            outputPrinter.println(encKeyString);
+
+            
             this.populateOnlineUsers();
             this.enterChatroom();
 
@@ -158,7 +182,6 @@ public class ClientController {
 
     public void enterChatroom(){
         outputPrinter.println("NEW_USER_ENTRANCE");
-        System.out.println("Sent NEW USER");
         this.listenForMessages(); //LISTEN
 
     }
@@ -190,7 +213,6 @@ public class ClientController {
         int userNum = 1;
         try {
              userNum = Integer.parseInt(inputReader.readLine());
-            System.out.println(userNum + "users coming in!");
         } catch (IOException e1) {
             e1.printStackTrace();
         }
@@ -201,12 +223,37 @@ public class ClientController {
 
                 if(!otherUser.equals("Online Users Populated")){
                     gui.getOnlineUserList().getItems().add(otherUser);
-                    System.out.println("Just added " + otherUser);
+                    ArrayList<String> messageList = new ArrayList<>();
+                    ObservableList<String> observableMessageList = FXCollections.observableArrayList(messageList);
+                    messageBoxes.put(otherUser, observableMessageList);
+                    messageBoxes.get(otherUser).add(otherUser);
                 }
                
 
             }
        
+        }
+
+        public void updateMessages(String user, String decryptedMessage, String timeString){
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run(){
+                    ClientController.this.getMessageBoxes().get(user).add(user + " said : " + decryptedMessage + "                   at " + timeString);
+                }
+            });
+        }
+
+        public void updateYourMessages(String user, String decryptedMessage, String timeString){
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run(){
+                    ClientController.this.getMessageBoxes().get(user).add("You said : " + decryptedMessage + "                   at " + timeString);
+                }
+            });
+        }
+
+        public HashMap<String, ObservableList<String>> getMessageBoxes(){
+            return messageBoxes;
         }
     }
 

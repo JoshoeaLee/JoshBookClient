@@ -62,8 +62,6 @@ public class AES {
         Scanner sc = new Scanner(file);
         String serverPublicKey = sc.nextLine();
         sc.close();
-        System.out.println("Printing out public key");
-        System.out.println(serverPublicKey);
         byte[] serverPublic = Base64.getMimeDecoder().decode(serverPublicKey);
         try {
             PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(serverPublic));
@@ -96,7 +94,6 @@ public class AES {
     {
         if(serverPublicKey==null){
             this.getPublicServerKey();
-System.out.println("GotServerKey!");
         }
         Cipher rsaCipher = Cipher.getInstance("RSA"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!
         rsaCipher.init(Cipher.ENCRYPT_MODE, serverPublicKey);

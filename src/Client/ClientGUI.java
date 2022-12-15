@@ -3,6 +3,9 @@ package Client;
 import java.io.IOException;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableStringValue;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -20,10 +23,11 @@ public class ClientGUI extends Application {
     boolean loggedin = false;
     Text portInstructions;
     ChoiceBox<String> friendList;
+    ListView<String> messageView;
+    Stage extraStage;
 
 
-    
-    public static TableView<MessageLog> messageView = new TableView<>(); 
+
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -45,6 +49,16 @@ public class ClientGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("JoshBook Client");
         primaryStage.show();
+
+        //On Client Close
+        primaryStage.setOnCloseRequest(e->{
+            System.out.println("Closing the client");
+            try {
+                clientController.closeClient();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
     }
 
     private VBox makeSidebar(){
@@ -64,7 +78,6 @@ public class ClientGUI extends Application {
             try{
                 String ip = ipField.getText();
                 int port = Integer.valueOf(portField.getText());
-                System.out.println("Attempting to Connect");
                 clientController.connectToServer(ip, port);
                 if(!loggedin){
                     this.openLoginScreen();
@@ -120,6 +133,19 @@ public class ClientGUI extends Application {
         friendBox.setAlignment(Pos.CENTER);
         friendBox.setBackground(new Background(new BackgroundFill(Color.PAPAYAWHIP, CornerRadii.EMPTY, Insets.EMPTY)));
 
+
+
+        chooseFriendBtn.setOnAction(e->{
+            if(clientController.getMessageBoxes().get(friendList.getSelectionModel().getSelectedItem())==null){
+                this.openNotification("Choose a valid user");
+            }
+            else{
+                ObservableList<String> userMessageList = this.clientController.getMessageBoxes().get(friendList.getSelectionModel().getSelectedItem());
+                this.messageView.setItems(userMessageList);
+            }
+            
+        });
+
         //Chat Logs////////////////////////////////////////////////////////////////////////////////////////////////////////
         Text chatLogText = new Text("Chat Logs");
 
@@ -157,9 +183,9 @@ public class ClientGUI extends Application {
         titleBox.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
 
         //Message Table
-        //INSERT METHOD HERE TO SELECT WHICH MESSAGE YOU WANT TO SEE (PUBLIC/FRIENDS/CHATLOGS)
-        messageView.setPlaceholder(new Label("Messages Go Here"));
-        messageView.setMinHeight(580);
+
+        messageView = new ListView<String>();
+        messageView.setPlaceholder(new Label("Choose someone and start chatting!"));
 
         //Chat Box Input
         TextArea chatInput = new TextArea();
@@ -178,7 +204,6 @@ public class ClientGUI extends Application {
 
         sendBtn.setOnAction(e->{
             String receiver = ClientGUI.this.getOnlineUserList().getValue();
-            System.out.println(receiver);
             clientController.sendMessage(chatInput.getText(), receiver);
         });
         //Full Message Pane
@@ -212,6 +237,7 @@ public class ClientGUI extends Application {
 
         Scene loginScene = new Scene(loginBox, 600, 600);
         Stage loginStage = new Stage();
+        extraStage = loginStage;
         loginStage.setScene(loginScene);
         loginStage.setTitle("Please Log in");
         loginStage.show();
@@ -229,15 +255,12 @@ public class ClientGUI extends Application {
             try {
                 clientController.logIn(firstName, lastName, pWord, portInstructions);
             } catch (Exception e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
 
         });
-
-
-
     }
+
 
     public void openCreateAccountScreen(){
 
@@ -264,6 +287,7 @@ public class ClientGUI extends Application {
 
         Scene createScene = new Scene(createBox, 600, 600);
         Stage createStage = new Stage();
+        extraStage = createStage;
         createStage.setScene(createScene);
         createStage.setTitle("Create Account");
         createStage.show();
@@ -296,8 +320,14 @@ public class ClientGUI extends Application {
         alert.showAndWait();
     }
 
+
+
     public ChoiceBox<String> getOnlineUserList(){
         return friendList;
+    }
+
+    public ListView<String> getCurrentMessages(){
+        return messageView;
     }
 
 
