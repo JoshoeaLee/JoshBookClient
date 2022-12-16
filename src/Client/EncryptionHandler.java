@@ -1,6 +1,5 @@
 package Client;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -57,8 +56,7 @@ public class EncryptionHandler {
      * @throws FileNotFoundException
      */
     public void getPublicServerKey() throws FileNotFoundException{
-        File file = new File( "./lib/serverPublicKey.txt");
-        Scanner sc = new Scanner(file);
+        Scanner sc = new Scanner(EncryptionHandler.class.getResourceAsStream("serverPublicKey.txt"));
         String serverPublicKey = sc.nextLine();
         sc.close();
         byte[] serverPublic = Base64.getMimeDecoder().decode(serverPublicKey);
