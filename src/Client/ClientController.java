@@ -1,7 +1,6 @@
 package Client;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -237,11 +236,6 @@ public class ClientController {
         try {
             encryptionHandler = new EncryptionHandler();
             SecretKey sessionKey = encryptionHandler.generateKey();
-            String encodedSessionKey = Base64.getEncoder().encodeToString(sessionKey.getEncoded());
-            PrintWriter saveKeyPrint = new PrintWriter(new File("./lib/" + user + "SessionKey.txt"));
-            saveKeyPrint.println(encodedSessionKey);
-            saveKeyPrint.close();
-
             return sessionKey;
             
         } catch (NoSuchAlgorithmException e) {
